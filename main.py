@@ -3,10 +3,22 @@
 import pygame
 import random
 import math
-
+from pygame import mixer
 
 #initializing pygame
 pygame.init()
+
+#Set up backround
+background = pygame.image.load("resources\\background-1.jpg")
+scaled_background = pygame.transform.scale(background, (800, 600))
+
+#Background music
+mixer.music.load("resources\\background.wav")
+mixer.music.play(-1)
+
+# Score Text
+score_font = pygame.font.Font('freesansbold.ttf', 32)
+
 
 #Set up display
 screen = pygame.display.set_mode((800,600))
@@ -25,6 +37,7 @@ class Bullet:
         self.rotated = pygame.transform.rotate(self.img, 90)
 
     def shoot(self):
+        self.change = -1
         screen.blit(self.rotated, (self.x, self.y))
 
     def move(self):
@@ -42,6 +55,7 @@ class Player:
         self.x = x
         self.y = 600-69
         self.change = change
+        self.score = 0
         
     
     def player_set(self):
@@ -52,7 +66,7 @@ class Player:
         if self.x <= 0:
             self.x = 0
         elif self.x >= (800-64):
-            self.x = 736
+            self.x = 800-64
 
 
 
@@ -78,23 +92,35 @@ class Enemy:
 
     def is_hit(self, bullet):
         distance = math.sqrt((self.x - bullet.x)**2 + (self.y - bullet.y)**2)
-        if distance < 27:
-            pass
+        if distance < 48:
+            return True
+        return False
+    
+    def lose(self):
+        if self.y >= 440:
+            return True
+        return False
 
 
 
+enemies = []
 player = Player(370)
-x = random.randint(0, 800-64)
-y = random.randint(0, 300-64) 
 bullet = Bullet()   
-enemy = Enemy(x, y)
+for i in range(6):
+    x = random.randint(0, 800-64)
+    y = random.randint(0, 300-64) 
+    enemies.append(Enemy(x, y))
 
-
-
+game_over_font = pygame.font.Font('freesansbold.ttf', 64)
+game_over_txt = game_over_font.render("GAME OVER", True, (255,255,255))
+game_over = False
 
 running = True
 while running:
     screen.fill((0,0,0))
+    screen.blit(background, (0,0))
+    score_display = score_font.render(f"Score: {player.score}", True, (255,255,255))
+    screen.blit(score_display, (10,10))
 
     #loop events
     for event in pygame.event.get():
@@ -111,20 +137,47 @@ while running:
                     bullet.x = player.x +16
                     bullet.y = player.y +18
                     bullet.state = "fire"
+                    mixer.Sound("resources\\laser.wav").play()
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                 player.change = 0
     #Changes
     player.move()
-    enemy.move()
-    bullet.move()
-    
 
-    #show items
-    player.player_set()
-    enemy.enemy_set()
-    if bullet.state == "fire":
-        bullet.shoot()
+    for enemy in enemies:
+        enemy.move()
+        if enemy.lose():
+            enemies = []
+            game_over = True
+
+    if game_over == False:
+
+        bullet.move()
+        
+        for i, enemy in enumerate(enemies):
+            if enemy.is_hit(bullet):
+                bullet.state = "ready"
+                mixer.Sound("resources\\explosion.wav").play()
+                enemies.pop(i)
+                bullet.x = player.x
+                bullet.y = player.y
+                bullet.change = 0
+                player.score +=1
+                if enemies == []:
+                    for i in range(6):
+                        x = random.randint(0,800-64)
+                        y = random.randint(0,300-64)
+                        enemies.append(Enemy(x,y))
+
+
+
+
+        #show items
+        for enemy in enemies:
+            enemy.enemy_set()
+        if bullet.state == "fire":
+            bullet.shoot()
+        
 
 
     pygame.display.flip()
