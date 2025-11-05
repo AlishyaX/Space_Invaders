@@ -1,4 +1,30 @@
-# Space Invaiders Game
+# Space Invaiders Game(Notes)
+
+'''
+
+QUESTIONS:
+How do you set up pygame?
+- pip install pygame and import pygame and pygame.init()
+
+What is the purpose of the "While running" loop?
+- The "while running" loop is the main game loop that keeps the game running until the user decides to quit. It handles events, updates game state, and renders graphics.
+
+How do you create a screen in pygame?
+- You can create a screen in pygame using the pygame.display.set_mode() function, passing in a tuple with the desired width and height of the screen.
+
+How are objects placed on the screen in pygame?
+- Objects are placed on the screen in pygame using the blit() method, which draws an image or surface onto another surface at specified coordinates.
+
+What events can I listen for in pygame? What do those events do?
+- You can listen for various events in pygame, such as QUIT (to close the game), KEYDOWN (when a key is pressed), KEYUP (when a key is released), MOUSEBUTTONDOWN (when a mouse button is pressed), and MOUSEBUTTONUP (when a mouse button is released). These events allow you to handle user input and interactions within the game.
+
+How can I detect collision with pygame?
+- Collision detection in pygame can be done using bounding box methods like rect.colliderect() for rectangular objects or by calculating the distance between two objects for circular collisions.
+
+How do you add sounds in pygame?
+- You can add sounds in pygame using the pygame.mixer module. You can load sound files using mixer.Sound() for sound effects and mixer.music.load() for background music, and then play them using the play() method.
+
+'''
 
 import pygame
 import random
@@ -10,7 +36,7 @@ pygame.init()
 
 #Set up backround
 background = pygame.image.load("resources\\background-1.jpg")
-scaled_background = pygame.transform.scale(background, (800, 600))
+background = pygame.transform.scale(background, (800, 600))
 
 #Background music
 mixer.music.load("resources\\background.wav")
@@ -26,6 +52,24 @@ pygame.display.set_caption("Space Invaiders")
 pygame_icon = pygame.image.load('resources\\ufo-1.png')
 #32x32 image
 pygame.display.set_icon(pygame_icon)
+
+class Button:
+    def __init__(self, x, y, img, scale):
+        self.img = pygame.image.load(img)
+        self.img = pygame.transform.scale(self.img, (int(self.img.get_width() * scale), int(self.img.get_height() * scale)))
+        self.x = x
+        self.y = y
+        self.scale = scale
+        self.rect = self.img.get_rect()
+
+    def draw(self):
+        pos = pygame.mouse.get_pos()
+
+        if self.rect.collidepoint(pos):
+            print("Hover")
+
+        screen.blit(self.img, (self.x, self.y))
+
 
 class Bullet:
     def __init__(self, x=0, y=0):
@@ -113,7 +157,7 @@ for i in range(6):
 
 game_over_font = pygame.font.Font('freesansbold.ttf', 64)
 game_over_txt = game_over_font.render("GAME OVER", True, (255,255,255))
-game_over = False
+game_over = True
 
 running = True
 while running:
@@ -177,6 +221,12 @@ while running:
             enemy.enemy_set()
         if bullet.state == "fire":
             bullet.shoot()
+    else:
+        screen.blit(game_over_txt, (200,250))
+        button = Button(300, 350, "resources\\play.png", .75)
+        button.draw()
+
+    player.player_set()
         
 
 
