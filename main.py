@@ -55,20 +55,30 @@ pygame.display.set_icon(pygame_icon)
 
 class Button:
     def __init__(self, x, y, img, scale):
-        self.img = pygame.image.load(img)
-        self.img = pygame.transform.scale(self.img, (int(self.img.get_width() * scale), int(self.img.get_height() * scale)))
         self.x = x
         self.y = y
-        self.scale = scale
+        width = pygame.image.load(img).get_width()
+        height = pygame.image.load(img).get_height()
+        self.img = pygame.image.load(img)
+        self.img = pygame.transform.scale(self.img, (int(width * scale), int(height * scale)))
         self.rect = self.img.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.clicked = False
 
     def draw(self):
         pos = pygame.mouse.get_pos()
-
+        action = True
         if self.rect.collidepoint(pos):
-            print("Hover")
+            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+                self.clicked = True
+                action = False
+                print("CLICKED")
+            else:
+                action = True
 
         screen.blit(self.img, (self.x, self.y))
+        return action
 
 
 class Bullet:
@@ -157,7 +167,7 @@ for i in range(6):
 
 game_over_font = pygame.font.Font('freesansbold.ttf', 64)
 game_over_txt = game_over_font.render("GAME OVER", True, (255,255,255))
-game_over = True
+game_over = False
 
 running = True
 while running:
@@ -223,8 +233,8 @@ while running:
             bullet.shoot()
     else:
         screen.blit(game_over_txt, (200,250))
-        button = Button(300, 350, "resources\\play.png", .75)
-        button.draw()
+        button = Button(350, 350, "resources\\play.png", .25)
+        game_over = button.draw()
 
     player.player_set()
         
